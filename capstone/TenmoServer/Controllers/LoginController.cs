@@ -98,5 +98,8 @@ namespace TenmoServer.Controllers
 
             return result;
         }
+        //[HttpGet("/whoami")]
+        //public ActionResult<string>
+
     }
 }

@@ -9,6 +9,7 @@ namespace TenmoClient
     {
         private readonly TenmoConsoleService console = new TenmoConsoleService();
         private readonly TenmoApiService tenmoApiService;
+        
 
         public TenmoApp(string apiUrl)
         {
@@ -73,7 +74,10 @@ namespace TenmoClient
 
             if (menuSelection == 1)
             {
-                // View your current balance
+               
+                decimal balance = tenmoApiService.GetAccountBalance();
+                Console.WriteLine($"Your current balance is: ${balance}");
+                console.Pause();
             }
 
             if (menuSelection == 2)
@@ -88,7 +92,20 @@ namespace TenmoClient
 
             if (menuSelection == 4)
             {
-                // Send TE bucks
+                List<User> users = tenmoApiService.GetListUsers();
+
+                Console.WriteLine("| --------------Users-------------- |");
+                Console.WriteLine("|    Id   |  Username               |");
+                Console.WriteLine("| --------------------------------- |");
+                foreach(User user in users)
+                {
+                    Console.WriteLine($"| {user.UserId}  | {user.Username}  |");
+                }
+                
+                Console.WriteLine("| --------------------------------- |");
+                console.Pause();
+
+
             }
 
             if (menuSelection == 5)
