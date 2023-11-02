@@ -24,19 +24,50 @@ namespace TenmoClient.Services
 
         }
 
+        public Account GetAccount()
+        {
+            RestRequest request = new RestRequest("account");
+
+            IRestResponse<Account> response = client.Get<Account>(request);
+
+            CheckForError(response);
+
+            return response.Data;
+
+        }
+
         public List<User> GetListUsers()
         {
-            List<User> userList = new List<User>();
+            //List<User> userList = new List<User>();
 
-            RestRequest request = new RestRequest("transfer");
+            RestRequest request = new RestRequest("user");
             IRestResponse<List<User>> response = client.Get<List<User>>(request);
 
             CheckForError(response);
 
-            return userList;
+            return response.Data;
         }
         // Add methods to call api here...
 
+        public Account UpdateAccount(Account account)
+        {
+            RestRequest request = new RestRequest($"transfer/{account.UserId}");
+            request.AddJsonBody(account);
+            IRestResponse<Account> response = client.Put<Account>(request);
+
+            CheckForError(response);
+
+            return response.Data;
+        }
+
+        public Account GetAccountByUserId(int id)
+        {
+            RestRequest request = new RestRequest($"account/{id}");
+            IRestResponse<Account> response = client.Get<Account>(request);
+
+            CheckForError(response);
+            return response.Data;
+        }
 
     }
 }

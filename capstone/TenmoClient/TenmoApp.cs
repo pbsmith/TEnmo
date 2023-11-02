@@ -9,7 +9,7 @@ namespace TenmoClient
     {
         private readonly TenmoConsoleService console = new TenmoConsoleService();
         private readonly TenmoApiService tenmoApiService;
-        
+
 
         public TenmoApp(string apiUrl)
         {
@@ -74,7 +74,7 @@ namespace TenmoClient
 
             if (menuSelection == 1)
             {
-               
+
                 decimal balance = tenmoApiService.GetAccountBalance();
                 Console.WriteLine($"Your current balance is: ${balance}");
                 console.Pause();
@@ -93,19 +93,77 @@ namespace TenmoClient
             if (menuSelection == 4)
             {
                 List<User> users = tenmoApiService.GetListUsers();
+                Account updatedRecipientAccount = new Account();
+                Account updatedUserAccount = tenmoApiService.GetAccount();
 
                 Console.WriteLine("| --------------Users-------------- |");
                 Console.WriteLine("|    Id   |  Username               |");
                 Console.WriteLine("| --------------------------------- |");
-                foreach(User user in users)
+                char pad = ' ';
+                foreach (User user in users)
                 {
-                    Console.WriteLine($"| {user.UserId}  | {user.Username}  |");
+                    Console.WriteLine("| " + user.UserId.ToString().PadRight(6, pad) + "  | " + user.Username.PadRight(22, pad) + "  |");
                 }
-                
+
                 Console.WriteLine("| --------------------------------- |");
-                console.Pause();
+                Console.WriteLine("Please enter ID of recipient:");
+                string enteredId = Console.ReadLine();
+                int userId;
+                bool success = int.TryParse(enteredId, out userId);
+                if (!success)
+                {
+                    Console.Clear();
+                    Console.WriteLine();
+                    Console.WriteLine();
+                    Console.WriteLine();
+                    Console.WriteLine();
+                    Console.WriteLine("Please enter a valid ID");
+                    Console.WriteLine("*****************************");
+                    Console.WriteLine("Press enter to return to menu");
+                    Console.ReadLine();
+                }
+                else
+                {
+                    updatedRecipientAccount = tenmoApiService.GetAccountByUserId(userId);
+
+                    if (updatedRecipientAccount.AccountId == 0 || updatedRecipientAccount.AccountId == updatedUserAccount.AccountId)
+                    {
+                        Console.Clear();
+                        Console.WriteLine();
+                        Console.WriteLine();
+                        Console.WriteLine();
+                        Console.WriteLine();
+                        Console.WriteLine("Please enter a valid ID");
+                        Console.WriteLine("*****************************");
+                        Console.WriteLine("Press enter to return to menu");
+                        Console.ReadLine();
+                    }
+                    else
+                    {
+
+                        Console.WriteLine("Please enter amount you wish to send:");
+                        decimal amountToSend = decimal.Parse(Console.ReadLine());
 
 
+                        if (updatedUserAccount.Balance - amountToSend < 0)
+                        {
+                            Console.WriteLine("Insuffiecient funds");
+                            Console.ReadLine();
+                        }
+                        else if (amountToSend == null || amountToSend == 0 || amountToSend < 0)
+                        {
+                            Console.WriteLine("Please enter a valid amount");
+                            Console.ReadLine();
+                        }
+                        else
+                        {
+                            updatedUserAccount.Balance -= amountToSend;
+                            updatedRecipientAccount.Balance += amountToSend;
+                            tenmoApiService.UpdateAccount(updatedUserAccount);
+                            tenmoApiService.UpdateAccount(updatedRecipientAccount);
+                        }
+                    }
+                }
             }
 
             if (menuSelection == 5)

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace TenmoClient.Models
 {
-    internal class Account
+    public class Account
     {
         public int AccountId { get; set; }
 
