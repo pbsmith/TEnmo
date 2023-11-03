@@ -81,9 +81,7 @@ namespace TenmoClient
 
             if (menuSelection == 2)
             {
-                int input = int.Parse(ViewTransfers());
-                
-                TransferDetails(tenmoApiService.GetTransferById(input));
+                ViewTransfers();
             }
 
             if (menuSelection == 3)
@@ -168,29 +166,13 @@ namespace TenmoClient
             decimal balance = tenmoApiService.GetAccountBalance();
             console.GetBalance(balance);
         }
-        public string ViewTransfers()
+        public void ViewTransfers()
         {
             List<Transfer> transfers = tenmoApiService.ListTransfers();
             Account userAccount = tenmoApiService.GetAccount();
             Transfer currentTransfer = new Transfer();
 
-            string input = console.ViewTransfers(transfers, userAccount, currentTransfer);
-            return input;
-        }
-        public void TransferDetails(Transfer currentTransfer)
-        {
-            
-            string transferId = currentTransfer.TransferId.ToString();
-            string fromUser = tenmoApiService.GetUserById(currentTransfer.AccountFrom - 1000).Username;
-            string toUser = tenmoApiService.GetUserById(currentTransfer.AccountTo - 1000).Username;
-            string transferType = currentTransfer.TransferType;
-            string transferStatus = currentTransfer.TransferStatus;
-            decimal transferAmount = currentTransfer.Amount;
-
-            console.DetailsDisplay(transferId, fromUser, toUser, transferType, transferStatus, transferAmount);
-        }
-        public void CompleteTransfer(Transfer currentTransfer, string enteredId)
-        {
+            string enteredId = console.ViewTransfers(transfers, userAccount);
             int transferId;
             bool success = int.TryParse(enteredId, out transferId);
             if (!success)
@@ -210,9 +192,21 @@ namespace TenmoClient
                 }
                 else
                 {
-                    //DetailsDisplay(currentTransfer);
+                    TransferDetails(currentTransfer);
                 }
             }
+        }
+        public void TransferDetails(Transfer currentTransfer)
+        {
+            
+            string transferId = currentTransfer.TransferId.ToString();
+            string fromUser = tenmoApiService.GetUserById(currentTransfer.AccountFrom - 1000).Username;
+            string toUser = tenmoApiService.GetUserById(currentTransfer.AccountTo - 1000).Username;
+            string transferType = currentTransfer.TransferType;
+            string transferStatus = currentTransfer.TransferStatus;
+            decimal transferAmount = currentTransfer.Amount;
+
+            console.DetailsDisplay(transferId, fromUser, toUser, transferType, transferStatus, transferAmount);
         }
     }
 }

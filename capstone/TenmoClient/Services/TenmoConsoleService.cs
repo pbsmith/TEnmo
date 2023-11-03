@@ -63,7 +63,7 @@ namespace TenmoClient.Services
             Console.WriteLine($"Your current balance is: ${balance}");
             Pause();
         }
-        public string ViewTransfers(List<Transfer> transfers, Account userAccount, Transfer currentTransfer)
+        public string ViewTransfers(List<Transfer> transfers, Account userAccount)
         {
 
             Console.WriteLine("------------------------------------");
@@ -93,29 +93,6 @@ namespace TenmoClient.Services
 
             string enteredId = Console.ReadLine();
             return enteredId;
-            
-            //int transferId;
-            //bool success = int.TryParse(enteredId, out transferId);
-            //if (!success)
-            //{
-            //    BadId();
-            //}
-            //else if (transferId == 0)
-            //{
-            //    //Exit loop
-            //}
-            //else
-            //{
-            //    currentTransfer = tenmoApiService.GetTransferDetails(transferId);
-            //    if (currentTransfer.TransferId == 0)
-            //    {
-            //        BadId();
-            //    }
-            //    else
-            //    {
-            //        DetailsDisplay(currentTransfer);
-            //    }
-            //}
         }
         public void MenuSelection4()
         {
@@ -131,7 +108,6 @@ namespace TenmoClient.Services
             char pad = ' ';
             foreach (User user in users)
             {
-
                 Console.WriteLine("| " + user.UserId.ToString().PadRight(6, pad) + "  | " + user.Username.PadRight(22, pad) + "  |");
             }
 

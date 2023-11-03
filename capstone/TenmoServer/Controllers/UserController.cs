@@ -20,7 +20,6 @@ namespace TenmoServer.Controllers
         public ActionResult<IList<User>> GetUserList()
         {
             IList<User> users = daoUser.GetUsers();
-
             if (users == null)
             {
                 return NotFound();

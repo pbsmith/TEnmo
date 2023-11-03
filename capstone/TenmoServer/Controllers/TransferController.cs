@@ -19,22 +19,6 @@ namespace TenmoServer.Controllers
             daoTransfer = transferDao;
         }
 
-        //[HttpPut("{id}")]
-        //public ActionResult<Account> UpdateAccount(int id, Account account)
-        //{
-        //    account.UserId = id;
-
-        //    try
-        //    {
-        //        Account result = daoAccount.UpdateRecipient(account);
-        //        return Ok(result);
-        //    }
-        //    catch
-        //    {
-        //        return NotFound();
-        //    }
-        //}
-
         [HttpGet]
         public ActionResult<List<Transfer>> ListTransfers()
         {
