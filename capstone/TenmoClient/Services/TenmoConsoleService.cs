@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using System;
 using System.Collections.Generic;
 using TenmoClient.Models;
 
@@ -6,6 +7,13 @@ namespace TenmoClient.Services
 {
     public class TenmoConsoleService : ConsoleService
     {
+        private readonly TenmoApiService tenmoApiService;
+
+        public TenmoConsoleService(string apiUrl)
+        {
+            tenmoApiService = new TenmoApiService(apiUrl);
+        }
+
         /************************************************************
             Print methods
         ************************************************************/
@@ -50,9 +58,202 @@ namespace TenmoClient.Services
             };
             return loginUser;
         }
+        public void GetBalance(decimal balance)
+        {
+            Console.WriteLine($"Your current balance is: ${balance}");
+            Pause();
+        }
+        public string ViewTransfers(List<Transfer> transfers, Account userAccount, Transfer currentTransfer)
+        {
+
+            Console.WriteLine("------------------------------------");
+            Console.WriteLine("Transfers");
+            Console.WriteLine("ID          From/To          Amount");
+            Console.WriteLine("------------------------------------");
+            char pad = ' ';
+            foreach (Transfer transfer in transfers)
+            {
+                if (transfer.AccountFrom == userAccount.AccountId)
+                {
+                    Console.WriteLine(transfer.TransferId.ToString().PadRight(12, pad) + "TO: " + tenmoApiService.GetUserById(transfer.AccountTo - 1000).Username.PadRight(12, pad) + "$" + transfer.Amount.ToString());
+                }
+                else if (transfer.AccountFrom != userAccount.AccountId && transfer.AccountTo != userAccount.AccountId)
+                {
+                    //Exits
+                }
+                else
+                {
+                    Console.WriteLine(transfer.TransferId.ToString().PadRight(12, pad) + "FROM: " + tenmoApiService.GetUserById(transfer.AccountFrom - 1000).Username.PadRight(10, pad) + "$" + transfer.Amount.ToString());
+
+                }
+            }
+            Console.WriteLine("------------------------------------");
+            Console.WriteLine();
+            Console.WriteLine("Please enter transfer ID to view details or enter 0 to cancel: ");
+
+            string enteredId = Console.ReadLine();
+            return enteredId;
+            
+            //int transferId;
+            //bool success = int.TryParse(enteredId, out transferId);
+            //if (!success)
+            //{
+            //    BadId();
+            //}
+            //else if (transferId == 0)
+            //{
+            //    //Exit loop
+            //}
+            //else
+            //{
+            //    currentTransfer = tenmoApiService.GetTransferDetails(transferId);
+            //    if (currentTransfer.TransferId == 0)
+            //    {
+            //        BadId();
+            //    }
+            //    else
+            //    {
+            //        DetailsDisplay(currentTransfer);
+            //    }
+            //}
+        }
+        public void MenuSelection4()
+        {
+            List<User> users = tenmoApiService.GetListUsers();
+            Account updatedRecipientAccount = new Account();
+            Account updatedUserAccount = tenmoApiService.GetAccount();
+
+            Transfer transfer = new Transfer();
+
+            Console.WriteLine("| --------------Users-------------- |");
+            Console.WriteLine("|    Id   |  Username               |");
+            Console.WriteLine("| --------------------------------- |");
+            char pad = ' ';
+            foreach (User user in users)
+            {
+
+                Console.WriteLine("| " + user.UserId.ToString().PadRight(6, pad) + "  | " + user.Username.PadRight(22, pad) + "  |");
+            }
+
+            Console.WriteLine("| --------------------------------- |");
+            Console.WriteLine("Please enter ID of recipient or enter 0 to cancel:");
+            string enteredId = Console.ReadLine();
+            int userId;
+            bool success = int.TryParse(enteredId, out userId);
+            if (!success)
+            {
+                BadId();
+            }
+            else if (userId == 0)
+            {
+                //Exit loop
+            }
+            else
+            {
+                updatedRecipientAccount = tenmoApiService.GetAccountByUserId(userId);
+
+                if (updatedRecipientAccount.AccountId == 0 || updatedRecipientAccount.AccountId == updatedUserAccount.AccountId)
+                {
+                    BadId();
+                }
+                else
+                {
+
+                    Console.WriteLine("Please enter amount you wish to send:");
+                    string input = Console.ReadLine();
+
+                    bool isValid = CheckValidAmount(input);
+
+                    if (!isValid)
+                    {
+                        BadValue();
+                    }
+                    else
+                    {
+                        decimal amountToSend = decimal.Parse(input);
 
 
-        
+                        if (updatedUserAccount.Balance - amountToSend < 0)
+                        {
+                            Console.WriteLine("Insufficient funds");
+                            Console.ReadLine();
+                        }
+                        else if (amountToSend == 0 || amountToSend < 0)
+                        {
+                            Console.WriteLine("Please enter a valid amount");
+                            Console.ReadLine();
+                        }
+                        else
+                        {
+                            BeginTransfer(transfer, updatedRecipientAccount, updatedUserAccount, amountToSend);
+                        }
+                    }
+                }
+            }
+        }
+        public void DetailsDisplay(string transferId, string fromUser, string toUser, string transferType, string transferStatus, decimal transferAmount)
+        {
+            Console.Clear();
+            Console.WriteLine("-----------------------------------");
+            Console.WriteLine("Transfer Details");
+            Console.WriteLine("-----------------------------------");
+            Console.WriteLine();
+            Console.WriteLine("ID: " + transferId);
+            Console.WriteLine("FROM: " + fromUser);
+            Console.WriteLine("TO: " + toUser);
+            Console.WriteLine("TYPE: " + transferType);
+            Console.WriteLine("STATUS: " + transferStatus);
+            Console.WriteLine("AMOUNT: $" + transferAmount);
+            Console.WriteLine();
+            Pause();
+        }
+        public void BadId()
+        {
+            Console.Clear();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine("Please enter a valid ID");
+            Console.WriteLine("*****************************");
+            Console.WriteLine("Press enter to return to menu");
+            Console.ReadLine();
+        }
+        public void BadValue()
+        {
+            Console.Clear();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine("Please enter a valid amount");
+            Console.WriteLine("*****************************");
+            Console.WriteLine("Press enter to return to menu");
+            Console.ReadLine();
+        }
+        public void BeginTransfer(Transfer transfer, Account recipientAccount, Account userAccount, decimal amountToSend)
+        {
+            transfer.Amount = amountToSend;
+            transfer.AccountTo = recipientAccount.AccountId;
+            transfer.AccountFrom = userAccount.AccountId;
+
+            transfer.TransferTypeId = 2;
+            transfer.TransferStatusId = 2;
+            tenmoApiService.CreateTransfer(transfer);
+        }
+
+        public bool CheckValidAmount(string input)
+        {
+            
+            decimal amount;
+            bool isValid = decimal.TryParse(input,out amount);
+            if(amount <= 0)
+            {
+                isValid = false;
+            }
+            return isValid;
+
+        }
         // Add application-specific UI methods here...
 
 

@@ -12,43 +12,83 @@ namespace TenmoServer.Controllers
     public class TransferController : ControllerBase
     {
         private readonly IAccountDao daoAccount;
-        public TransferController(IAccountDao accountDao)
+        private readonly ITransferDao daoTransfer;
+        public TransferController(IAccountDao accountDao, ITransferDao transferDao)
         {
             daoAccount = accountDao;
+            daoTransfer = transferDao;
         }
 
-        [HttpPut("{id}")]
-        public ActionResult<Account> UpdateAccount(int id, Account account)
-        {
-            account.UserId = id;
+        //[HttpPut("{id}")]
+        //public ActionResult<Account> UpdateAccount(int id, Account account)
+        //{
+        //    account.UserId = id;
 
-            try
-            {
-                Account result = daoAccount.UpdateRecipient(account);
-                return Ok(result);
-            }
-            catch
-            {
-                return NotFound();
-            }
-        }
+        //    try
+        //    {
+        //        Account result = daoAccount.UpdateRecipient(account);
+        //        return Ok(result);
+        //    }
+        //    catch
+        //    {
+        //        return NotFound();
+        //    }
+        //}
 
         [HttpGet]
         public ActionResult<List<Transfer>> ListTransfers()
         {
-            return Ok();
+
+            List<Transfer> transfers = daoTransfer.ListTransfers();
+
+            if(transfers == null)
+            {
+                return NotFound();
+            }
+            return Ok(transfers);
         }
 
         [HttpGet("{id}")]
         public ActionResult<Transfer> GetTransferById(int id)
         {
-            return Ok();
+            Transfer transfer = daoTransfer.GetTransferById(id);
+
+            if(transfer == null)
+            {
+                return NotFound();
+            }
+            return transfer;
         }
 
         [HttpPost]
-        public ActionResult CreateTransfer(Transfer transfer)
+        public ActionResult<Transfer> CreateTransfer(Transfer transfer)
         {
-            return Ok();
+            Transfer newTransfer = daoTransfer.CreateTransfer(transfer);
+
+            Account accountFrom = daoAccount.GetAccountById(newTransfer.AccountFrom);
+            Account accountTo = daoAccount.GetAccountById(newTransfer.AccountTo);
+
+            
+            accountFrom.Balance -= newTransfer.Amount;
+            accountTo.Balance += newTransfer.Amount;
+
+            daoAccount.UpdateRecipient(accountFrom);
+            daoAccount.UpdateRecipient(accountTo);
+
+            return Created($"/transfer/{newTransfer.TransferId}", newTransfer);
+
+        }
+
+        [HttpGet("{id}/details")]
+        public ActionResult<Transfer> GetTransferDetails(int id)
+        {
+            Transfer transfer = daoTransfer.TransferDetails(id);
+
+            if (transfer == null)
+            {
+                return NotFound();
+            }
+            return transfer;
         }
     }
 }

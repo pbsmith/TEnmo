@@ -5,10 +5,13 @@ namespace TenmoServer.DAO
 {
     public interface ITransferDao
     {
-        Transfer CreateTransfer();
+        Transfer CreateTransfer(Transfer transfer);
 
         List<Transfer> ListTransfers();
 
-        Transfer TransferDetails();
+
+        Transfer GetTransferById(int id);
+
+        Transfer TransferDetails(int id);
     }
 }

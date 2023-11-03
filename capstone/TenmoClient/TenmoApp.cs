@@ -3,17 +3,19 @@ using System.Collections.Generic;
 using TenmoClient.Models;
 using TenmoClient.Services;
 
+
 namespace TenmoClient
 {
     public class TenmoApp
     {
-        private readonly TenmoConsoleService console = new TenmoConsoleService();
+        private readonly TenmoConsoleService console;
         private readonly TenmoApiService tenmoApiService;
 
 
         public TenmoApp(string apiUrl)
         {
             tenmoApiService = new TenmoApiService(apiUrl);
+            console = new TenmoConsoleService(apiUrl);
         }
 
         public void Run()
@@ -74,15 +76,14 @@ namespace TenmoClient
 
             if (menuSelection == 1)
             {
-
-                decimal balance = tenmoApiService.GetAccountBalance();
-                Console.WriteLine($"Your current balance is: ${balance}");
-                console.Pause();
+                GetBalance();
             }
 
             if (menuSelection == 2)
             {
-                // View your past transfers
+                int input = int.Parse(ViewTransfers());
+                
+                TransferDetails(tenmoApiService.GetTransferById(input));
             }
 
             if (menuSelection == 3)
@@ -92,78 +93,7 @@ namespace TenmoClient
 
             if (menuSelection == 4)
             {
-                List<User> users = tenmoApiService.GetListUsers();
-                Account updatedRecipientAccount = new Account();
-                Account updatedUserAccount = tenmoApiService.GetAccount();
-
-                Console.WriteLine("| --------------Users-------------- |");
-                Console.WriteLine("|    Id   |  Username               |");
-                Console.WriteLine("| --------------------------------- |");
-                char pad = ' ';
-                foreach (User user in users)
-                {
-                    Console.WriteLine("| " + user.UserId.ToString().PadRight(6, pad) + "  | " + user.Username.PadRight(22, pad) + "  |");
-                }
-
-                Console.WriteLine("| --------------------------------- |");
-                Console.WriteLine("Please enter ID of recipient:");
-                string enteredId = Console.ReadLine();
-                int userId;
-                bool success = int.TryParse(enteredId, out userId);
-                if (!success)
-                {
-                    Console.Clear();
-                    Console.WriteLine();
-                    Console.WriteLine();
-                    Console.WriteLine();
-                    Console.WriteLine();
-                    Console.WriteLine("Please enter a valid ID");
-                    Console.WriteLine("*****************************");
-                    Console.WriteLine("Press enter to return to menu");
-                    Console.ReadLine();
-                }
-                else
-                {
-                    updatedRecipientAccount = tenmoApiService.GetAccountByUserId(userId);
-
-                    if (updatedRecipientAccount.AccountId == 0 || updatedRecipientAccount.AccountId == updatedUserAccount.AccountId)
-                    {
-                        Console.Clear();
-                        Console.WriteLine();
-                        Console.WriteLine();
-                        Console.WriteLine();
-                        Console.WriteLine();
-                        Console.WriteLine("Please enter a valid ID");
-                        Console.WriteLine("*****************************");
-                        Console.WriteLine("Press enter to return to menu");
-                        Console.ReadLine();
-                    }
-                    else
-                    {
-
-                        Console.WriteLine("Please enter amount you wish to send:");
-                        decimal amountToSend = decimal.Parse(Console.ReadLine());
-
-
-                        if (updatedUserAccount.Balance - amountToSend < 0)
-                        {
-                            Console.WriteLine("Insuffiecient funds");
-                            Console.ReadLine();
-                        }
-                        else if (amountToSend == null || amountToSend == 0 || amountToSend < 0)
-                        {
-                            Console.WriteLine("Please enter a valid amount");
-                            Console.ReadLine();
-                        }
-                        else
-                        {
-                            updatedUserAccount.Balance -= amountToSend;
-                            updatedRecipientAccount.Balance += amountToSend;
-                            tenmoApiService.UpdateAccount(updatedUserAccount);
-                            tenmoApiService.UpdateAccount(updatedRecipientAccount);
-                        }
-                    }
-                }
+                console.MenuSelection4();
             }
 
             if (menuSelection == 5)
@@ -232,6 +162,57 @@ namespace TenmoClient
                 console.PrintError("Registration was unsuccessful.");
             }
             console.Pause();
+        }
+        public void GetBalance()
+        {
+            decimal balance = tenmoApiService.GetAccountBalance();
+            console.GetBalance(balance);
+        }
+        public string ViewTransfers()
+        {
+            List<Transfer> transfers = tenmoApiService.ListTransfers();
+            Account userAccount = tenmoApiService.GetAccount();
+            Transfer currentTransfer = new Transfer();
+
+            string input = console.ViewTransfers(transfers, userAccount, currentTransfer);
+            return input;
+        }
+        public void TransferDetails(Transfer currentTransfer)
+        {
+            
+            string transferId = currentTransfer.TransferId.ToString();
+            string fromUser = tenmoApiService.GetUserById(currentTransfer.AccountFrom - 1000).Username;
+            string toUser = tenmoApiService.GetUserById(currentTransfer.AccountTo - 1000).Username;
+            string transferType = currentTransfer.TransferType;
+            string transferStatus = currentTransfer.TransferStatus;
+            decimal transferAmount = currentTransfer.Amount;
+
+            console.DetailsDisplay(transferId, fromUser, toUser, transferType, transferStatus, transferAmount);
+        }
+        public void CompleteTransfer(Transfer currentTransfer, string enteredId)
+        {
+            int transferId;
+            bool success = int.TryParse(enteredId, out transferId);
+            if (!success)
+            {
+                console.BadId();
+            }
+            else if (transferId == 0)
+            {
+                //Exit loop
+            }
+            else
+            {
+                currentTransfer = tenmoApiService.GetTransferDetails(transferId);
+                if (currentTransfer.TransferId == 0)
+                {
+                    console.BadId();
+                }
+                else
+                {
+                    //DetailsDisplay(currentTransfer);
+                }
+            }
         }
     }
 }

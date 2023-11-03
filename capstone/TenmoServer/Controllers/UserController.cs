@@ -27,5 +27,16 @@ namespace TenmoServer.Controllers
             }
             return Ok(users);
         }
+        [HttpGet("{id}")]
+        public ActionResult<User> GetUser(int id)
+        {
+            User user = daoUser.GetUserById(id);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+            return Ok(user);
+        }
     }
 }

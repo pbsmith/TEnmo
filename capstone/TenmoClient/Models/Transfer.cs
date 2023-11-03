@@ -1,4 +1,4 @@
-﻿namespace TenmoServer.Models
+﻿namespace TenmoClient.Models
 {
     public class Transfer
     {
@@ -13,5 +13,9 @@
         public int AccountTo { get; set; }
 
         public decimal Amount { get; set; }
+
+        public string TransferStatus { get; set; }
+
+        public string TransferType { get; set; }
     }
 }
