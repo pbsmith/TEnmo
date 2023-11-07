@@ -91,7 +91,7 @@ namespace TenmoClient
 
             if (menuSelection == 4)
             {
-                console.MenuSelection4();
+                ViewUsers();
             }
 
             if (menuSelection == 5)
@@ -198,7 +198,7 @@ namespace TenmoClient
         }
         public void TransferDetails(Transfer currentTransfer)
         {
-            
+
             string transferId = currentTransfer.TransferId.ToString();
             string fromUser = tenmoApiService.GetUserById(currentTransfer.AccountFrom - 1000).Username;
             string toUser = tenmoApiService.GetUserById(currentTransfer.AccountTo - 1000).Username;
@@ -207,6 +207,41 @@ namespace TenmoClient
             decimal transferAmount = currentTransfer.Amount;
 
             console.DetailsDisplay(transferId, fromUser, toUser, transferType, transferStatus, transferAmount);
+        }
+
+        public void ViewUsers()
+        {
+            List<User> users = tenmoApiService.GetListUsers();
+            Account updatedRecipientAccount = new Account();
+            Account updatedUserAccount = tenmoApiService.GetAccount();
+
+            Transfer transfer = new Transfer();
+
+            string enteredId = console.ListUsers(users, updatedRecipientAccount);
+
+            int userId;
+            bool success = int.TryParse(enteredId, out userId);
+            if (!success)
+            {
+                console.BadId();
+            }
+            else if (userId == 0)
+            {
+                //Exit loop
+            }
+            else
+            {
+                updatedRecipientAccount = tenmoApiService.GetAccountByUserId(userId);
+
+                if (updatedRecipientAccount.AccountId == 0 || updatedRecipientAccount.AccountId == updatedUserAccount.AccountId)
+                {
+                    console.BadId();
+                }
+                else
+                {
+                    console.SendMoney(transfer, updatedUserAccount, updatedRecipientAccount);
+                }    
+            }
         }
     }
 }

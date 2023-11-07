@@ -94,13 +94,8 @@ namespace TenmoClient.Services
             string enteredId = Console.ReadLine();
             return enteredId;
         }
-        public void MenuSelection4()
+        public string ListUsers(List<User> users, Account updatedRecipientAccount)
         {
-            List<User> users = tenmoApiService.GetListUsers();
-            Account updatedRecipientAccount = new Account();
-            Account updatedUserAccount = tenmoApiService.GetAccount();
-
-            Transfer transfer = new Transfer();
 
             Console.WriteLine("| --------------Users-------------- |");
             Console.WriteLine("|    Id   |  Username               |");
@@ -114,58 +109,8 @@ namespace TenmoClient.Services
             Console.WriteLine("| --------------------------------- |");
             Console.WriteLine("Please enter ID of recipient or enter 0 to cancel:");
             string enteredId = Console.ReadLine();
-            int userId;
-            bool success = int.TryParse(enteredId, out userId);
-            if (!success)
-            {
-                BadId();
-            }
-            else if (userId == 0)
-            {
-                //Exit loop
-            }
-            else
-            {
-                updatedRecipientAccount = tenmoApiService.GetAccountByUserId(userId);
+            return enteredId;
 
-                if (updatedRecipientAccount.AccountId == 0 || updatedRecipientAccount.AccountId == updatedUserAccount.AccountId)
-                {
-                    BadId();
-                }
-                else
-                {
-
-                    Console.WriteLine("Please enter amount you wish to send:");
-                    string input = Console.ReadLine();
-
-                    bool isValid = CheckValidAmount(input);
-
-                    if (!isValid)
-                    {
-                        BadValue();
-                    }
-                    else
-                    {
-                        decimal amountToSend = decimal.Parse(input);
-
-
-                        if (updatedUserAccount.Balance - amountToSend < 0)
-                        {
-                            Console.WriteLine("Insufficient funds");
-                            Console.ReadLine();
-                        }
-                        else if (amountToSend == 0 || amountToSend < 0)
-                        {
-                            Console.WriteLine("Please enter a valid amount");
-                            Console.ReadLine();
-                        }
-                        else
-                        {
-                            BeginTransfer(transfer, updatedRecipientAccount, updatedUserAccount, amountToSend);
-                        }
-                    }
-                }
-            }
         }
         public void DetailsDisplay(string transferId, string fromUser, string toUser, string transferType, string transferStatus, decimal transferAmount)
         {
@@ -231,7 +176,38 @@ namespace TenmoClient.Services
 
         }
         // Add application-specific UI methods here...
+        public void SendMoney(Transfer transfer,Account updatedUserAccount, Account updatedRecipientAccount)
+        {
+            Console.WriteLine("Please enter amount you wish to send:");
+            string input = Console.ReadLine();
 
+            bool isValid = CheckValidAmount(input);
+
+            if (!isValid)
+            {
+                BadValue();
+            }
+            else
+            {
+                decimal amountToSend = decimal.Parse(input);
+
+
+                if (updatedUserAccount.Balance - amountToSend < 0)
+                {
+                    Console.WriteLine("Insufficient funds");
+                    Console.ReadLine();
+                }
+                else if (amountToSend == 0 || amountToSend < 0)
+                {
+                    Console.WriteLine("Please enter a valid amount");
+                    Console.ReadLine();
+                }
+                else
+                {
+                    BeginTransfer(transfer, updatedRecipientAccount, updatedUserAccount, amountToSend);
+                }
+            }
+        }
 
     }
 }
